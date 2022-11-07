@@ -1,0 +1,181 @@
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
+#include <Servo.h>
+#include <LiquidCrystal.h>
+#include<SoftwareSerial.h>
+
+#define IR1 3
+#define red  7
+#define green 12
+float ObjT;
+int s = 0;
+String k;
+int pos = 0,q;
+int pos1 = 0;
+int m;
+
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+Servo myservo;
+Servo myservo1;
+LiquidCrystal lcd(A0, A1, A2, A3,5,6);
+SoftwareSerial nod(10,11);
+void temperature();
+void mask();
+void results();
+
+void setup() {
+
+  mlx.begin();
+  Serial.begin (9600);
+  nod.begin(9600);
+  lcd.begin(16,2);
+  myservo.attach(4);
+  myservo1.attach(8);
+  pinMode(IR1, INPUT);
+  pinMode(red, OUTPUT);
+  pinMode(green, OUTPUT);
+ 
+  myservo.write(pos);
+  digitalWrite(red, LOW);
+  digitalWrite(green, LOW);
+  lcd.setCursor(0,0);
+  lcd.print("FACE MASK DETECT");
+  lcd.setCursor(0,1);
+  lcd.print(" & THERMAL SCAN ");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  lcd.setCursor(0,0);
+  lcd.print("THERMAL");
+  lcd.setCursor(0,1);
+  lcd.print("SCANNING");
+    s = 1;
+  temperature();
+  delay(1000);
+}
+
+void temperature() {
+  if (s == 1) {
+    ObjT = mlx.readObjectTempC();
+//    Serial.print("TARGET  ");
+//    Serial.println(ObjT);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("TEMP(*C): ");
+    lcd.setCursor(0,1);
+    lcd.print(ObjT);
+    delay(1000);
+    if (ObjT >= 38.0) {
+//      Serial.println("HIGH TEMPERATURE");
+      digitalWrite(red, HIGH);
+      lcd.clear();
+      lcd.setCursor(6,0);
+      lcd.print("HIGH");
+      lcd.setCursor(3,1);
+      lcd.print("TEMPERATURE");
+      nod.print("k");
+      delay(3000);
+      lcd.clear();
+      digitalWrite(red, LOW);
+    }
+    else {
+      lcd.clear();
+      lcd.setCursor(5,0);
+      lcd.print("NORMAL");
+      lcd.setCursor(3,1);
+      lcd.print("TEMPERATURE");
+      delay(1000);
+//      Serial.println("NORMAL TEMPERATURE");
+      mask();
+    }
+    delay(1000);
+    lcd.clear();
+
+  }
+  else {
+//    Serial.println("NO OPERATION");
+q = 0;
+  }
+}
+
+void mask() {
+//  Serial.println(digitalRead(IR1));
+//  Serial.println(s);
+  if (digitalRead(IR1) == 0) {
+//    Serial.println("Testing mask");
+    lcd.clear();
+    Serial.println('a');
+    results();
+
+  }
+}
+
+
+void results() {
+//  Serial.println("results loop");
+  while (!Serial.available());
+//  Serial.println("while loop");
+//  k = Serial.readStringUntil('\n');
+//  Serial.println(k);
+  if (Serial.read() == '*') {
+    k = Serial.readStringUntil('\n');
+    m=k.toInt();
+    Serial.println(m);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(m);
+    delay(2000);
+    lcd.clear();
+    if (m == 100 || m == 90) {
+      lcd.setCursor(0,0);
+      lcd.print("   THANKS FOR   ");
+      lcd.setCursor(0,1);
+      lcd.print("  WEARING MASK  ");
+      digitalWrite(green, HIGH);
+      delay(20000);
+      digitalWrite(green, LOW);
+      delay(2000);
+      lcd.clear();
+//      Serial.println("Thanks for Wearing Mask");
+      lcd.setCursor(0,0);
+      lcd.print("  DOOR OPENING  ");
+      delay(1000);
+      for (pos = 0; pos <= 90; pos += 1) { // goes from 0 degrees to 180 degrees
+        // in steps of 1 degree
+        myservo.write(pos);              // tell servo to go to position in variable 'pos'
+        delay(15);                       // waits 15ms for the servo to reach the position
+      }
+      delay(5000);
+      lcd.clear();
+      for (pos = 90; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+        myservo.write(pos);              // tell servo to go to position in variable 'pos'
+        delay(15);                       // waits 15ms for the servo to reach the position
+      }
+      Serial.println('n');
+    }
+    else {
+//      Serial.println("Please Wear Mask");
+      digitalWrite(red, HIGH);
+      lcd.setCursor(0,0);
+      lcd.print("PLEASE WEAR MASK");
+      for (pos1 = 0; pos1 <= 90; pos1 += 1) { // goes from 0 degrees to 180 degrees
+        // in steps of 1 degree
+        myservo1.write(pos1);              // tell servo to go to position in variable 'pos'
+        delay(15);                       // waits 15ms for the servo to reach the position
+      }
+      delay(5000);
+      lcd.clear();
+      for (pos1 = 90; pos1 >= 0; pos1 -= 1) { // goes from 180 degrees to 0 degrees
+        myservo1.write(pos1);              // tell servo to go to position in variable 'pos'
+        delay(15);                       // waits 15ms for the servo to reach the position
+      }
+      delay(3000);
+      digitalWrite(red, LOW);
+      lcd.clear();
+      Serial.println('n');
+    }
+    s = 0;
+  }
+}
