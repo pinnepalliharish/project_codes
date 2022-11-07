@@ -10,7 +10,7 @@
  *********************************************************************/
 
 
-#include "esp_camera.h"
+#include "esp_camera.h"	#compares facial features						
 //#include <WiFi.h>
 #include "esp_timer.h"
 #include "img_converters.h"

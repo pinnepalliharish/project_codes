@@ -1,8 +1,8 @@
-#include <Wire.h>
-#include <Adafruit_MLX90614.h>
-#include <Servo.h>
-#include <LiquidCrystal.h>
-#include<SoftwareSerial.h>
+#include <Wire.h>  #MLX temperature sensor
+#include <Adafruit_MLX90614.h> #Main library for mlx9061
+#include <Servo.h> #servo motor
+#include <LiquidCrystal.h> #LCD
+#include<SoftwareSerial.h> #for extra pair of RX,TX we use this lib
 
 #define IR1 3
 #define red  7
@@ -28,9 +28,12 @@ void setup() {
   mlx.begin();
   Serial.begin (9600);
   nod.begin(9600);
-  lcd.begin(16,2);
+  lcd.begin(16,2); #c,r
   myservo.attach(4);
   myservo1.attach(8);
+
+  #to declare the input and output devices
+
   pinMode(IR1, INPUT);
   pinMode(red, OUTPUT);
   pinMode(green, OUTPUT);
